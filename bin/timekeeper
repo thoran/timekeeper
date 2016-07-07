@@ -1,30 +1,88 @@
 #!/usr/bin/env ruby
 # timekeeper
 
-# 20140929
-# 0.2.0
+# 20160612
+# 0.3.0
 
 require 'DatelessTime'
+require 'time'
 
-def timekeeper_filename
+def sub_command
   ARGV[0]
 end
 
-def timekeeper_file
+def timekeeper_filename
+  ARGV[1]
+end
+
+def timekeeper
   File.read(timekeeper_filename)
 end
 
-def dates_and_times
-  timekeeper_file.split("\n").reject{|line| line =~ /^#/}.select{|line| line =~ /;/}
+# in common with timekeeper2timesheet
+
+def day_and_date(date_and_times)
+  date_and_times.split(';').first
+end
+
+def day_and_date?(date_and_times)
+  day_and_date(date_and_times).split(',').size == 2
+end
+
+def day_name(date)
+  case Time.parse(date).wday
+  when 1; 'Monday'
+  when 2; 'Tuesday'
+  when 3; 'Wednesday'
+  when 4; 'Thursday'
+  when 5; 'Friday'
+  when 6; 'Saturday'
+  when 7; 'Sunday'
+  end
 end
 
 def day(date_and_times)
-  date_and_times.split(';').first
+  if day_and_date?(date_and_times)
+    day_and_date(date_and_times).split(',').first.strip
+  else
+    date = date(date_and_times)
+    day_name(date)
+  end
+end
+
+def date(date_and_times)
+  if day_and_date?(date_and_times)
+    day_and_date(date_and_times).split(',').last.strip
+  else
+    day_and_date(date_and_times).split(',').first.strip
+  end
 end
 
 def day_periods(date_and_times)
   date_and_times.split(';').last
 end
+
+def beginning_of_period(day_period)
+  day_period.strip.split('-').first.strip
+end
+
+def end_of_period(day_period)
+  day_period.strip.split('-').last.strip
+end
+
+def lines(timekeeper)
+  timekeeper.split("\n")
+end
+
+def date_and_time_line?(line)
+  !!(line =~ /^#/ || line =~ /;/)
+end
+
+def dates_and_times(timekeeper)
+  lines(timekeeper).reject{|line| line =~ /^#/}.select{|line| line =~ /;/}
+end
+
+# in common with timekeeper2timesheet
 
 def days_hours_worked(date_and_times)
   days_hours_worked = 0
@@ -39,11 +97,11 @@ def days_hours_worked(date_and_times)
   days_hours_worked
 end
 
-def total_hours_worked
+def total_hours_worked(timekeeper)
   total_hours_worked = 0
-  dates_and_times.each do |date_and_times|
+  dates_and_times(timekeeper).each do |date_and_times|
     hours_worked = days_hours_worked(date_and_times)
-    puts day(date_and_times) + ' ' + hours_worked.round(2).to_s + ' ' + '(' + hours_and_minutes(hours_worked) + ')'
+    puts day(date_and_times) + ', ' + date(date_and_times) + ': ' + hours_worked.round(2).to_s + ' ' + '(' + hours_and_minutes(hours_worked) + ')'
     total_hours_worked += hours_worked
   end
   total_hours_worked
@@ -55,24 +113,58 @@ def hours_and_minutes(hours)
   [parts.first, "#{sprintf('%02d', parts.last)}"].join(':')
 end
 
-def main
-  hours = total_hours_worked
-  puts "#{hours} (#{hours_and_minutes(hours)})"
-  exit
-
-  p total_money_owed = total_hours_worked * 70
-
-  file = File.read(ARGV[0])
-  lines = file.split("\n")
-  invoice_lines = lines.select{|line| line =~ /^_/}
-  invoice_amounts = invoice_lines.collect do |invoice_line|
-    invoice_line.split(',').last.strip.tr('$', '')
+def todays_entry(timekeeper)
+  lines(timekeeper).index do |line|
+    next unless date_and_time_line?(line)
+    date(line) == Date.today.to_s
   end
-  p total_money_invoiced = invoice_amounts.collect(&:to_i).inject(0){|total_amount, invoice_amount| total_amount + invoice_amount}
+end
 
-  p difference = total_money_owed - total_money_invoiced
+def start
+  if index = todays_entry(timekeeper)
+    timekeeper_array = lines(timekeeper)
+    time_now = Time.now
+    hours, minutes = time_now.hour, sprintf('%02d', time_now.min)
+    if timekeeper_array[index] =~ /;/
+      timekeeper_array[index] << ", #{hours}:#{minutes} - "
+    else
+      timekeeper_array[index] << "; #{hours}:#{minutes} - "
+    end
+  else
+    time_now = Time.now
+    hours, minutes = time_now.hour, sprintf('%02d', time_now.min)
+    timekeeper_array = (
+      if day_and_date?(lines(timekeeper).last)
+        lines(timekeeper) << "#{day_name(Date.today.to_s)}, #{hours}:#{minutes}; #{Time.now} - "
+      else
+        lines(timekeeper) << "#{Date.today}; #{hours}:#{minutes} - "
+      end
+    )
+  end
+  timekeeper = timekeeper_array.join("\n")
+  File.write(timekeeper_filename, timekeeper)
+end
 
-  p hours_difference = difference/70
+def stop
+  if index = todays_entry(timekeeper)
+    time_now = Time.now
+    hours, minutes = time_now.hour, sprintf('%02d', time_now.min)
+    timekeeper_array = lines(timekeeper)
+    timekeeper_array[index] = timekeeper_array[index] + "#{hours}:#{minutes}"
+  else
+    puts 'No entry for today found.'
+  end
+  timekeeper = timekeeper_array.join("\n")
+  File.write(timekeeper_filename, timekeeper)
+end
+
+def report
+  hours = total_hours_worked(timekeeper)
+  puts "#{hours} (#{hours_and_minutes(hours)})"
+end
+
+def main
+  send(sub_command)
 end
 
 main
