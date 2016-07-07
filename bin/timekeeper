@@ -1,14 +1,16 @@
 #!/usr/bin/env ruby
 # timekeeper
 
-# 20160704
-# 0.6.0
+# 20160708
+# 0.6.1
 
 # Todo:
 # 1. Be able to cope with cross-day start and stops for all those late night coders out there.
 
 require 'DatelessTime'
 require 'time'
+
+SUB_COMMANDS = %w{start stop report open}
 
 def config_path
   File.expand_path(File.join('~', '.config', 'timekeeper.config'))
@@ -191,7 +193,7 @@ def open
 end
 
 def main
-  send(sub_command)
+  send(sub_command) if SUB_COMMANDS.include?(sub_command)
 end
 
 main
