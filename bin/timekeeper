@@ -2,17 +2,34 @@
 # timekeeper
 
 # 20160612
-# 0.3.0
+# 0.4.0
+
+# Todo:
+# 1. Be able to cope with cross-day start and stops for all those late night coders out there.
 
 require 'DatelessTime'
 require 'time'
+
+def config_path
+  File.expand_path(File.join('~', '.config', 'timekeeper.config'))
+end
+
+def timekeeper_dir
+  File.read(config_path).strip
+end
 
 def sub_command
   ARGV[0]
 end
 
 def timekeeper_filename
-  ARGV[1]
+  if File.exist?(File.expand_path(ARGV[1]))
+    File.expand_path(ARGV[1])
+  elsif File.exist?(File.expand_path(File.join("#{timekeeper_dir}", ARGV[1])))
+    File.expand_path(File.join("#{timekeeper_dir}", ARGV[1]))
+  elsif File.exist?(File.expand_path(File.join("#{timekeeper_dir}", "#{ARGV[1]}.timekeeper")))
+    File.expand_path(File.join("#{timekeeper_dir}", "#{ARGV[1]}.timekeeper"))
+  end
 end
 
 def timekeeper
