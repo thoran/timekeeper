@@ -1,68 +1,26 @@
-# require 'DatelessTime'
-
-# all_periods = [
-#   "9:15 - 12:30, 13:30 - 18:15",
-#   "9:35 - 12:35, 13:35 - 18:15",
-#   "8:35 - 12:35, 13:35 - 18:35",
-#   "9:10 - 12:00, 12:30 - 17:15",
-#   "9:05 - 12:50, 13:20 - 18:05",
-#   "9:10 - 13:15, 14:15 - 18:15",
-#   "9:25 - 13:30, 14:00 - 18:20",
-#   "9:25 - 13:30, 14:00 - 18:40",
-#   "9:10 - 12:45, 13:15 - 18:00",
-#   "9:25 - 12:30, 13:00 - 18:50",
-#   "9:35 - 12:15, 13:15 - 18:50"
-# ]
-
-# hours = 0
-
-# all_periods.each do |day_periods|
-#   day_periods.split(',').each do |day_period|
-#     beginning_of_period, end_of_period = day_period.strip.split('-')
-#     beginning_of_period = beginning_of_period.strip
-#     end_of_period = end_of_period.strip
-#     begin_time = DatelessTime.new(beginning_of_period).to_time
-#     end_time = DatelessTime.new(end_of_period).to_time
-#     hours += (end_time - begin_time)/60/60
-#   end
-# end
-
-# p hours
-
-# all_periods = [
-#   "9:20 - 12:30, 13:00 - 19:15",
-#   "9:15 - 12:40, 13:40 - 18:25",
-#   "9:25 - 12:45, 13:15 - 18:00",
-#   "9:20 - 12:30, 12:45 - 19:15",
-#   "9:40 - 12:30, 13:00 - 18:45",
-#   "9:30 - 12:00, 12:30 - 18:00",
-#   "9:30 - 12:00, 12:30 - 18:25",
-#   "9:25 - 12:30, 13:30 - 18:00",
-#   "9:30 - 12:00, 12:30 - 17:30",
-#   "9:45 - 12:30, 13:00 - 18:15"
-# ]
-
-
-# 20121009
+# 20121108
 
 require 'DatelessTime'
 
-hours_worked = 0
+total_hours_worked = 0
 
 file = File.read('/Users/thoran/ibsa_invoices.txt')
 times = file.split("\n").select{|line| line =~ /;/}.collect{|line| line.split(';').last}
 times.each do |day_periods|
+  days_hours_worked = 0
   day_periods.split(',').each do |day_period|
     beginning_of_period, end_of_period = day_period.strip.split('-')
     beginning_of_period = beginning_of_period.strip
     end_of_period = end_of_period.strip
     begin_time = DatelessTime.new(beginning_of_period).to_time
     end_time = DatelessTime.new(end_of_period).to_time
-    hours_worked += (end_time - begin_time)/60/60
+    days_hours_worked += (end_time - begin_time)/60/60
   end
+  p days_hours_worked
+  total_hours_worked += days_hours_worked
 end
 
-p hours_worked
+p total_hours_worked
 
-p excess_hours_worked = hours_worked - (23 * 5 * 8)
+p excess_hours_worked = total_hours_worked - (23 * 5 * 8)
 p excess_hours_worked * 70
