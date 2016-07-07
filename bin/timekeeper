@@ -1,10 +1,14 @@
-# 20121108
+#!/usr/bin/env ruby
+# timekeeper
+
+# 20130107
+# 0.0.3
 
 require 'DatelessTime'
 
 total_hours_worked = 0
 
-file = File.read('/Users/thoran/ibsa_invoices.txt')
+file = File.read(ARGV[0])
 dates_and_times = file.split("\n").select{|line| line =~ /;/}
 dates_and_times.each do |date_and_times|
   day, day_periods = date_and_times.split(';').first, date_and_times.split(';').last
