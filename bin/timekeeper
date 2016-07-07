@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 # timekeeper
 
-# 20160612
-# 0.4.0
+# 20160704
+# 0.5.0
 
 # Todo:
 # 1. Be able to cope with cross-day start and stops for all those late night coders out there.
@@ -178,6 +178,10 @@ end
 def report
   hours = total_hours_worked(timekeeper)
   puts "#{hours} (#{hours_and_minutes(hours)})"
+end
+
+def open
+  exec "#{ENV['VISUAL']} #{timekeeper_filename}"
 end
 
 def main
