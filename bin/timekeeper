@@ -5,10 +5,11 @@ require 'DatelessTime'
 total_hours_worked = 0
 
 file = File.read('/Users/thoran/ibsa_invoices.txt')
-times = file.split("\n").select{|line| line =~ /;/}.collect{|line| line.split(';').last}
-times.each do |day_periods|
+dates_and_times = file.split("\n").select{|line| line =~ /;/}
+dates_and_times.each do |date_and_times|
+  day, day_periods = date_and_times.split(';').first, date_and_times.split(';').last
   days_hours_worked = 0
-  day_periods.split(',').each do |day_period|
+  day_periods.split(',').each do |day_period, index|
     beginning_of_period, end_of_period = day_period.strip.split('-')
     beginning_of_period = beginning_of_period.strip
     end_of_period = end_of_period.strip
@@ -16,7 +17,7 @@ times.each do |day_periods|
     end_time = DatelessTime.new(end_of_period).to_time
     days_hours_worked += (end_time - begin_time)/60/60
   end
-  p days_hours_worked
+  puts day + ' ' + days_hours_worked.round(2).to_s
   total_hours_worked += days_hours_worked
 end
 
