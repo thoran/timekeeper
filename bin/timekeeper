@@ -1,15 +1,17 @@
 #!/usr/bin/env ruby
 # timekeeper
 
-# 20130107
-# 0.0.3
+# 20140121, 28
+# 0.1.0
 
 require 'DatelessTime'
 
 total_hours_worked = 0
 
 file = File.read(ARGV[0])
-dates_and_times = file.split("\n").select{|line| line =~ /;/}
+dates_and_times = file.split("\n")
+dates_and_times = dates_and_times.reject{|line| line =~ /^#/}
+dates_and_times = dates_and_times.select{|line| line =~ /;/}
 dates_and_times.each do |date_and_times|
   day, day_periods = date_and_times.split(';').first, date_and_times.split(';').last
   days_hours_worked = 0
@@ -27,5 +29,5 @@ end
 
 p total_hours_worked
 
-p excess_hours_worked = total_hours_worked - (23 * 5 * 8)
+p excess_hours_worked = total_hours_worked - (55 * 5 * 7.5)
 p excess_hours_worked * 70
