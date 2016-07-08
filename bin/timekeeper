@@ -2,7 +2,7 @@
 # timekeeper
 
 # 20160708
-# 0.6.1
+# 0.6.2
 
 # Todo:
 # 1. Be able to cope with cross-day start and stops for all those late night coders out there.
@@ -182,10 +182,11 @@ def stop
 end
 
 def report
- hours = total_hours_worked(timekeeper)
- puts
- puts "Total hours: #{hours.round(2)} (#{hours_and_minutes(hours)})"
- puts "Mean hours per day: #{(hours/total_days).round(2)}"
+  hours = total_hours_worked(timekeeper)
+  mean_hours = (hours/total_days)
+  puts
+  puts "Total hours: #{hours.round(2)} (#{hours_and_minutes(hours)})"
+  puts "Mean hours per day: #{mean_hours.round(2)} (#{hours_and_minutes(mean_hours)})"
 end
 
 def open
