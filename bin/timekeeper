@@ -1,11 +1,15 @@
 #!/usr/bin/env ruby
 # timekeeper
 
-# 20160708
-# 0.6.2
+# 20161025
+# 0.7.0
 
 # Todo:
 # 1. Be able to cope with cross-day start and stops for all those late night coders out there.
+
+# Changes since 0.6:
+# 1. The sub_command and the filename can come either first or second in the argument list on the command line now!
+# 2. Some methods are memoized now, because this was so slow. :-P
 
 require 'DatelessTime'
 require 'time'
@@ -20,18 +24,38 @@ def timekeeper_dir
   File.read(config_path).strip
 end
 
+def sub_command_first?
+  @sub_command_first ||= SUB_COMMANDS.include?(ARGV[0])
+end
+
 def sub_command
-  ARGV[0]
+  if sub_command_first?
+    ARGV[0]
+  else
+    ARGV[1]
+  end
+end
+
+def timekeeper_input
+  @timekeeper_input ||= (
+    if sub_command_first?
+      ARGV[1]
+    else
+      ARGV[0]
+    end
+  )
 end
 
 def timekeeper_filename
-  if File.exist?(File.expand_path(ARGV[1]))
-    File.expand_path(ARGV[1])
-  elsif File.exist?(File.expand_path(File.join("#{timekeeper_dir}", ARGV[1])))
-    File.expand_path(File.join("#{timekeeper_dir}", ARGV[1]))
-  elsif File.exist?(File.expand_path(File.join("#{timekeeper_dir}", "#{ARGV[1]}.timekeeper")))
-    File.expand_path(File.join("#{timekeeper_dir}", "#{ARGV[1]}.timekeeper"))
-  end
+  @timekeeper_filename ||= (
+    if File.exist?(File.expand_path(timekeeper_input))
+      File.expand_path(timekeeper_input)
+    elsif File.exist?(File.expand_path(File.join("#{timekeeper_dir}", timekeeper_input)))
+      File.expand_path(File.join("#{timekeeper_dir}", timekeeper_input))
+    elsif File.exist?(File.expand_path(File.join("#{timekeeper_dir}", "#{timekeeper_input}.timekeeper")))
+      File.expand_path(File.join("#{timekeeper_dir}", "#{timekeeper_input}.timekeeper"))
+    end
+  )
 end
 
 def timekeeper
