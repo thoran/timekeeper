@@ -1,11 +1,12 @@
 #!/usr/bin/env ruby
 # timekeeper
 
-# 20161118
-# 0.7.1
+# 20180814
+# 0.7.2
 
 # Todo:
 # 1. Be able to cope with cross-day start and stops for all those late night coders out there.
+# 2. Create the supplied file if it doesn't exist.  The File.read() line in timekeeper() fails because timekeeper_filename is nil.
 
 # Changes since 0.6:
 # 1. The sub_command and the filename can come either first or second in the argument list on the command line now!
@@ -13,6 +14,9 @@
 # 0/1
 # 3. Moved the config path from ~/.config/timekeeper.config to ~/.config/timekeeper/config.txt, which is more consistent with how I've arranged the ~/.config directory.
 # 4. Included a sample config file in the repository.
+# 1/2 ~ start()
+# 5. Fixed an error which occurs when there are no entries in the specified timekeeper file.
+# 6. Dried up the assignment of time_now, hours, and minutes.
 
 require 'DatelessTime'
 require 'time'
@@ -171,18 +175,18 @@ def total_days
 end
 
 def start
-  if index = todays_entry(timekeeper)
+  time_now = Time.now
+  hours, minutes = time_now.hour, sprintf('%02d', time_now.min)
+  if lines(timekeeper).empty? # There are no entries in the file yet.
+    timekeeper_array = ["#{Date.today}; #{hours}:#{minutes} - "]
+  elsif index = todays_entry(timekeeper) # There are entries in the file and there is an entry for today already.
     timekeeper_array = lines(timekeeper)
-    time_now = Time.now
-    hours, minutes = time_now.hour, sprintf('%02d', time_now.min)
     if timekeeper_array[index] =~ /;/
       timekeeper_array[index] << ", #{hours}:#{minutes} - "
     else
       timekeeper_array[index] << "; #{hours}:#{minutes} - "
     end
-  else
-    time_now = Time.now
-    hours, minutes = time_now.hour, sprintf('%02d', time_now.min)
+  else # There are entries in the file, but there is no entry for today as yet.
     timekeeper_array = (
       if day_and_date?(lines(timekeeper).last)
         lines(timekeeper) << "#{day_name(Date.today.to_s)}, #{hours}:#{minutes}; #{Time.now} - "
