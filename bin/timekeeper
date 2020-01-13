@@ -1,12 +1,12 @@
 #!/usr/bin/env ruby
 # timekeeper
 
-# 20180814
-# 0.7.2
+# 20200113
+# 0.7.3
 
 # Todo:
 # 1. Be able to cope with cross-day start and stops for all those late night coders out there.
-# 2. Create the supplied file if it doesn't exist.  The File.read() line in timekeeper() fails because timekeeper_filename is nil.
+# 2. Create the supplied file if it doesn't exist.  The File.read() line in timekeeper() fails because timekeeper_filename is nil.  Done as of 0.7.3.
 
 # Changes since 0.6:
 # 1. The sub_command and the filename can come either first or second in the argument list on the command line now!
@@ -17,8 +17,11 @@
 # 1/2 ~ start()
 # 5. Fixed an error which occurs when there are no entries in the specified timekeeper file.
 # 6. Dried up the assignment of time_now, hours, and minutes.
+# 2/3
+# 7. ~ timekeeper(), so that it will create a file in the default path if there is none.  See Todo #2.
 
 require 'DatelessTime'
+require 'fileutils'
 require 'time'
 
 SUB_COMMANDS = %w{start stop report open}
@@ -66,6 +69,10 @@ def timekeeper_filename
 end
 
 def timekeeper
+  unless timekeeper_filename && File.exist?(timekeeper_filename)
+    new_timekeeper_filename = File.expand_path(File.join("#{timekeeper_dir}", "#{timekeeper_input}.timekeeper"))
+    FileUtils.touch(new_timekeeper_filename)
+  end
   File.read(timekeeper_filename)
 end
 
